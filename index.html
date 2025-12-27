@@ -60,12 +60,10 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,Bli
 .p-tab tr:nth-child(even){background:#111}
 .show-grid .gl{opacity:1}
 .show-grid .cr{opacity:1}
-
 @media(min-width:768px){
 .st{display:block}
 #ed{padding:30px 10%;max-width:1400px;margin:0 auto}
 }
-
 @media (max-width:480px){
 .gr{grid-template-columns:repeat(2,1fr)}
 .header{padding:0 8px}
@@ -91,13 +89,11 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,Bli
         <div class="bt er" id="b-cl">清空</div>
     </div>
 </div>
-
 <div class="main">
     <div id="gl" class="gl"></div>
     <div class="cr x"></div><div class="cr y"></div>
     <textarea id="ed" placeholder="请输入内容" spellcheck="false"></textarea>
 </div>
-
 <div class="dock">
     <div class="pl on" id="pl">
         <div class="pc">
@@ -106,29 +102,24 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,Bli
                 <input type="range" id="fs" min="12" max="48" value="17">
                 <button class="tb" style="width:70px" id="b-tg">参考</button>
             </div>
-
             <div class="rw">
                 <div class="ig"><input id="fi" placeholder="查找"><button id="f-n">↓</button><button id="f-p">↑</button></div>
                 <div class="ig"><input id="ri" placeholder="替换"><button id="r-o">换</button><button id="r-a">全</button></div>
             </div>
-
             <div class="gr">
                 <button class="tb" data-a="fm">排版</button>
                 <button class="tb" data-a="dd">去重</button>
                 <button class="tb" data-a="mg">合并</button>
                 <button class="tb" data-a="ln">行号</button>
-
                 <button class="tb" data-a="cc">Aa</button>
                 <button class="tb" data-a="rv">翻转</button>
                 <button class="tb" data-a="sr">排序</button>
                 <button class="tb" data-a="et">提取</button>
-
                 <button class="tb w" data-a="tb">制表</button>
                 <button class="tb w" data-a="ex">导出</button>
             </div>
         </div>
     </div>
-
     <div class="bar">
         <button class="ic" data-c="cp">C</button>
         <button class="ic" data-c="ml">←</button>
@@ -139,248 +130,165 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,Bli
         <button class="ic m" id="b-m">▼</button>
     </div>
 </div>
-
 <div class="mo" id="mw">
     <div class="mb">
         <div class="mh"><span id="mt"></span><span style="cursor:pointer" id="mc">✕</span></div>
         <div id="m-body"></div>
     </div>
 </div>
-
 <div id="tp">
     <div class="ph"><button class="bt" id="s-ti">存图</button><button class="bt" id="s-th">网页</button><button class="bt er" id="c-tp">关闭</button></div>
     <div class="p-cnt" id="tc"></div>
 </div>
-
 <div id="toast" class="ts"></div>
-
 <script>
 class Editor{
-    constructor(){
-        this.el=document.getElementById('ed');
-        this.st=document.getElementById('st');
-        this.hi=[];this.idx=-1;this.ti=null;
-        this.init();
-    }
-
-    init(){
-        this.el.value=localStorage.getItem('x_t')||'';
-        const sz=localStorage.getItem('x_s')||'17';
-        document.documentElement.style.setProperty('--default-font-size', sz+'px');
-        this.el.style.fontSize=sz+'px';
-        document.getElementById('fs').value=sz;
-        this.up();this.sv(true);this.bind();
-        if(!localStorage.getItem('x_pl_state')) document.getElementById('pl').classList.add('on');
-    }
-
-    bind(){
-        this.el.oninput=()=>{this.up();this.resize();clearTimeout(this.ti);this.ti=setTimeout(()=>this.sv(),500)};
-        document.getElementById('b-cl').onclick=()=>{if(confirm('清空全部？')){this.el.value='';this.sv();this.up();this.resize()}};
-        document.getElementById('b-dg').onclick=()=>this.ss();
-        document.getElementById('b-ss').onclick=()=>this.ss();
-        document.getElementById('b-py').onclick=()=>this.mod('赞助','<div style="padding:30px;text-align:center"><img src="-
-/微信图片_20251228004905.jpg" style="max-width:100%;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.5)"></div>');
-        document.getElementById('b-m').onclick=()=>{
-            document.getElementById('pl').classList.toggle('on');
-            localStorage.setItem('x_pl_state', document.getElementById('pl').classList.contains('on')? 'on' : 'off');
-        };
-
-        document.getElementById('fs').oninput=(e)=>{
-            this.el.style.fontSize=e.target.value+'px';
-            document.documentElement.style.setProperty('--default-font-size', e.target.value+'px');
-            localStorage.setItem('x_s',e.target.value);
-            this.resize();
-        };
-
-        document.getElementById('b-tg').onclick=()=>document.body.classList.toggle('show-grid');
-        document.getElementById('f-n').onclick=()=>this.find(1);
-        document.getElementById('f-p').onclick=()=>this.find(-1);
-        document.getElementById('r-o').onclick=()=>this.rep(0);
-        document.getElementById('r-a').onclick=()=>this.rep(1);
-        document.querySelector('.gr').onclick=(e)=>{const a=e.target.dataset.a;if(a)this.act(a)};
-        document.querySelector('.bar').onclick=(e)=>{const c=e.target.dataset.c;if(c)this.cmd(c)};
-        document.getElementById('mc').onclick=()=>document.getElementById('mw').style.display='none';
-        document.getElementById('c-tp').onclick=()=>document.getElementById('tp').style.display='none';
-    }
-
-    up(){const v=this.el.value;this.st.innerText=`${v.length}字 / ${v?v.split('\n').length:1}行`}
-
-    sv(f){
-        const v=this.el.value;localStorage.setItem('x_t',v);
-        if(f){this.hi=[v];this.idx=0;return}
-        if(this.idx>-1&&this.hi[this.idx]===v)return;
-        this.hi=this.hi.slice(0,this.idx+1);this.hi.push(v);
-        if(this.hi.length>60)this.hi.shift();else this.idx++;
-    }
-
-    resize(){
-        this.el.style.height='auto';
-        this.el.style.height=this.el.scrollHeight+'px';
-    }
-
-    cmd(c){
-
-        if(c=='cp'){
-            navigator.clipboard.writeText(
-                this.el.value.substring(this.el.selectionStart,this.el.selectionEnd)||this.el.value
-            );
-            this.to('已复制')
-        }
-
-        if(c=='ps'){
-            navigator.clipboard.readText().then(t=>{
-                const s=this.el.selectionStart;
-                this.el.value=this.el.value.slice(0,s)+t+this.el.value.slice(this.el.selectionEnd);
-                this.sv();this.up();this.resize()
-            })
-        }
-
-        if(c=='un'&&this.idx>0){
-            this.el.value=this.hi[--this.idx];this.up();this.resize()
-        }
-
-        if(c=='re'&&this.idx<this.hi.length-1){
-            this.el.value=this.hi[++this.idx];this.up();this.resize()
-        }
-
-        /* 🌟 智能跳跃光标 */
-        if(c=='ml'||c=='mr'){
-            const v=this.el.value;
-            let p=this.el.selectionStart;
-            const len=v.length;
-
-            if(c=='ml'){
-                if(p>0){
-                    if(/\s/.test(v[p-1])){
-                        while(p>0 && /\s/.test(v[p-1])) p--;
-                    }else{
-                        while(p>0 && !/\s/.test(v[p-1])) p--;
-                    }
-                }
-            }else{
-                if(p<len){
-                    if(/\s/.test(v[p])){
-                        while(p<len && /\s/.test(v[p])) p++;
-                    }else{
-                        while(p<len && !/\s/.test(v[p])) p++;
-                    }
-                }
-            }
-
-            this.el.setSelectionRange(p,p);
-            this.el.focus();
-        }
-
-    }
-
-    act(a){
-        let v=this.el.value;
-        if(a=='fm')v=v.replace(/[ \t]+/g,' ').replace(/^ +| +$/gm,'').replace(/[\r\n]{2,}/g,'\n').replace(/([\u4e00-\u9fa5])([a-z0-9])/gi,'$1 $2').replace(/([a-z0-9])([\u4e00-\u9fa5])/gi,'$1 $2');
-        if(a=='dd')v=[...new Set(v.split('\n'))].join('\n');
-        if(a=='mg')v=v.replace(/[\r\n]+/g,'');
-        if(a=='ln')v=v.split('\n').map((x,i)=>`${i+1}. ${x.replace(/^\d+\.\s*/,'')}`).join('\n');
-        if(a=='cc')v=(v===v.toUpperCase())?v.toLowerCase():v.toUpperCase();
-        if(a=='rv')v=v.split('').reverse().join('');
-        if(a=='sr')v=v.split('\n').sort((x,y)=>x.localeCompare(y,'zh')).join('\n');
-
-        if(a=='et'){
-            const r={'时间':/(\d{4}[-/年]\d{1,2}[-/月]\d{1,2}日?)|(\d{1,2}:\d{1,2})/g,'电话':/1[3-9]\d{9}/g,'邮箱':/[\w.-]+@[\w.-]+\.[a-z]{2,}/gi};
-            let o=[];
-            for(let k in r){
-                let m=v.match(r[k]);
-                if(m)o.push(`【${k}】\n${[...new Set(m)].join('\n')}`)
-            }
-            v=o.length?o.join('\n\n'):v;
-        }
-
-        if(a=='tb')return this.makeTab();
-        if(a=='ex')return this.mod('导出','<div class="gr" style="padding:20px"><button class="tb" onclick="e.doEx(\'doc\')">DOC</button><button class="tb" onclick="e.doEx(\'txt\')">TXT</button><button class="tb" onclick="e.doEx(\'html\')">HTML</button></div>');
-
-        this.el.value=v;
-        this.sv();this.up();this.resize();
-    }
-
-    find(d){
-        const q=document.getElementById('fi').value;if(!q)return;
-        const v=this.el.value;
-        let i=d>0?v.indexOf(q,this.el.selectionEnd):v.lastIndexOf(q,this.el.selectionStart-1);
-        if(i<0)i=d>0?v.indexOf(q):v.lastIndexOf(q);
-        if(i>-1){this.el.setSelectionRange(i,i+q.length);this.el.focus();this.el.blur();this.el.focus()}
-    }
-
-    rep(a){
-        const f=document.getElementById('fi').value,r=document.getElementById('ri').value;
-        if(a)this.el.value=this.el.value.split(f).join(r);
-        else if(this.el.value.substring(this.el.selectionStart,this.el.selectionEnd)===f)this.el.setRangeText(r);
-        this.sv();this.up();this.resize();
-    }
-
-    makeTab(){
-        const rs=this.el.value.trim().split('\n').map(x=>x.split(/\s+/));
-        let h='<table class="p-tab">';
-        rs.forEach(r=>h+=`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`);
-        document.getElementById('tc').innerHTML=h+'</table>';
-        document.getElementById('tp').style.display='flex';
-        document.getElementById('s-ti').onclick=()=>html2canvas(document.querySelector('.p-tab'),{backgroundColor:'#000'}).then(c=>this.dl(c.toDataURL(),'table.png'));
-        document.getElementById('s-th').onclick=()=>this.df(document.getElementById('tc').innerHTML,'table.html','text/html');
-    }
-
-    doEx(t){
-        const v=this.el.value;let c=v,m='text/plain';
-        if(t=='doc'){c=`<html><body>${v.replace(/\n/g,'<br>')}</body></html>`;m='application/msword'}
-        if(t=='html'){c=`<html><body><pre>${v}</pre></body></html>`;m='text/html'}
-        this.df(c,`export.${t}`,m);
-    }
-
-    mod(t,h){
-        const w=document.getElementById('mw');
-        document.getElementById('mt').innerText=t;
-        document.getElementById('m-body').innerHTML=h;
-        w.style.display='flex'
-    }
-
-    ss(){
-        this.to('生成长图...');
-        const d=document.querySelector('.main');
-        const s=d.scrollTop;
-        const h=this.el.scrollHeight;
-        const o=d.style.overflow;
-        d.style.overflow='visible'; 
-        this.el.style.height=h+'px';
-
-        html2canvas(d,{backgroundColor:'#000',height:h,windowHeight:h,y:0,useCORS:true})
-        .then(c=>{
-            this.dl(c.toDataURL(),'screenshot.png');
-            d.style.overflow=o;d.scrollTop=s;
-        })
-        .catch(()=>{
-            d.style.overflow=o;
-            this.to('生成失败')
-        });
-    }
-
-    to(m){
-        const t=document.getElementById('toast');
-        t.innerText=m;
-        t.classList.add('on');
-        setTimeout(()=>t.classList.remove('on'),2000)
-    }
-
-    df(c,n,m){
-        const b=new Blob([c],{type:m}),u=URL.createObjectURL(b);
-        this.dl(u,n)
-    }
-
-    dl(u,n){
-        const a=document.createElement('a');
-        a.href=u;
-        a.download=n;
-        a.click()
-    }
+constructor(){
+this.el=document.getElementById('ed');
+this.st=document.getElementById('st');
+this.hi=[];this.idx=-1;this.ti=null;
+this.init();
+}
+init(){
+this.el.value=localStorage.getItem('x_t')||'';
+const sz=localStorage.getItem('x_s')||'17';
+document.documentElement.style.setProperty('--default-font-size', sz+'px');
+this.el.style.fontSize=sz+'px';
+document.getElementById('fs').value=sz;
+this.up();this.sv(true);this.bind();
+if(!localStorage.getItem('x_pl_state')) document.getElementById('pl').classList.add('on');
+}
+bind(){
+this.el.oninput=()=>{this.up();this.resize();clearTimeout(this.ti);this.ti=setTimeout(()=>this.sv(),500)};
+document.getElementById('b-cl').onclick=()=>{if(confirm('清空全部？')){this.el.value='';this.sv();this.up();this.resize()}};
+document.getElementById('b-dg').onclick=()=>this.ss();
+document.getElementById('b-ss').onclick=()=>this.ss();
+document.getElementById('b-py').onclick=()=>this.mod('赞助','<div style="padding:30px;text-align:center"><img src="assets/pay.png" style="max-width:100%;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.5)"></div>');
+document.getElementById('b-m').onclick=()=>{
+document.getElementById('pl').classList.toggle('on');
+localStorage.setItem('x_pl_state', document.getElementById('pl').classList.contains('on')? 'on' : 'off');
+};
+document.getElementById('fs').oninput=(e)=>{
+this.el.style.fontSize=e.target.value+'px';
+document.documentElement.style.setProperty('--default-font-size', e.target.value+'px');
+localStorage.setItem('x_s',e.target.value);
+this.resize();
+};
+document.getElementById('b-tg').onclick=()=>document.body.classList.toggle('show-grid');
+document.getElementById('f-n').onclick=()=>this.find(1);
+document.getElementById('f-p').onclick=()=>this.find(-1);
+document.getElementById('r-o').onclick=()=>this.rep(0);
+document.getElementById('r-a').onclick=()=>this.rep(1);
+document.querySelector('.gr').onclick=(e)=>{const a=e.target.dataset.a;if(a)this.act(a)};
+document.querySelector('.bar').onclick=(e)=>{const c=e.target.dataset.c;if(c)this.cmd(c)};
+document.getElementById('mc').onclick=()=>document.getElementById('mw').style.display='none';
+document.getElementById('c-tp').onclick=()=>document.getElementById('tp').style.display='none';
+}
+up(){const v=this.el.value;this.st.innerText=`${v.length}字 / ${v?v.split('\n').length:1}行`}
+sv(f){
+const v=this.el.value;localStorage.setItem('x_t',v);
+if(f){this.hi=[v];this.idx=0;return}
+if(this.idx>-1&&this.hi[this.idx]===v)return;
+this.hi=this.hi.slice(0,this.idx+1);this.hi.push(v);
+if(this.hi.length>60)this.hi.shift();else this.idx++;
+}
+resize(){
+this.el.style.height='auto';
+this.el.style.height=this.el.scrollHeight+'px';
+}
+cmd(c){
+if(c=='cp'){navigator.clipboard.writeText(this.el.value.substring(this.el.selectionStart,this.el.selectionEnd)||this.el.value);this.to('已复制')}
+if(c=='ps'){navigator.clipboard.readText().then(t=>{const s=this.el.selectionStart;this.el.value=this.el.value.slice(0,s)+t+this.el.value.slice(this.el.selectionEnd);this.sv();this.up();this.resize()})}
+if(c=='un'&&this.idx>0){this.el.value=this.hi[--this.idx];this.up();this.resize()}
+if(c=='re'&&this.idx<this.hi.length-1){this.el.value=this.hi[++this.idx];this.up();this.resize()}
+if(c=='ml'||c=='mr'){
+const v=this.el.value;
+let p=this.el.selectionStart;
+const len=v.length;
+if(c=='ml'){
+if(p>0){
+if(/\s/.test(v[p-1])){
+while(p>0 && /\s/.test(v[p-1])) p--;
+}else{
+while(p>0 && !/\s/.test(v[p-1])) p--;
+}
+}
+}else{
+if(p<len){
+if(/\s/.test(v[p])){
+while(p<len && /\s/.test(v[p])) p++;
+}else{
+while(p<len && !/\s/.test(v[p])) p++;
+}
+}
+}
+this.el.setSelectionRange(p,p);
+this.el.focus();
+}
+}
+act(a){
+let v=this.el.value;
+if(a=='fm')v=v.replace(/[ \t]+/g,' ').replace(/^ +| +$/gm,'').replace(/[\r\n]{2,}/g,'\n').replace(/([\u4e00-\u9fa5])([a-z0-9])/gi,'$1 $2').replace(/([a-z0-9])([\u4e00-\u9fa5])/gi,'$1 $2');
+if(a=='dd')v=[...new Set(v.split('\n'))].join('\n');
+if(a=='mg')v=v.replace(/[\r\n]+/g,'');
+if(a=='ln')v=v.split('\n').map((x,i)=>`${i+1}. ${x.replace(/^\d+\.\s*/,'')}`).join('\n');
+if(a=='cc')v=(v===v.toUpperCase())?v.toLowerCase():v.toUpperCase();
+if(a=='rv')v=v.split('').reverse().join('');
+if(a=='sr')v=v.split('\n').sort((x,y)=>x.localeCompare(y,'zh')).join('\n');
+if(a=='et'){
+const r={'时间':/(\d{4}[-/年]\d{1,2}[-/月]\d{1,2}日?)|(\d{1,2}:\d{1,2})/g,'电话':/1[3-9]\d{9}/g,'邮箱':/[\w.-]+@[\w.-]+\.[a-z]{2,}/gi};
+let o=[];for(let k in r){let m=v.match(r[k]);if(m)o.push(`【${k}】\n${[...new Set(m)].join('\n')}`)}
+v=o.length?o.join('\n\n'):v;
+}
+if(a=='tb')return this.makeTab();
+if(a=='ex')return this.mod('导出','<div class="gr" style="padding:20px"><button class="tb" onclick="e.doEx(\'doc\')">DOC</button><button class="tb" onclick="e.doEx(\'txt\')">TXT</button><button class="tb" onclick="e.doEx(\'html\')">HTML</button></div>');
+this.el.value=v;this.sv();this.up();this.resize();
+}
+find(d){
+const q=document.getElementById('fi').value;if(!q)return;
+const v=this.el.value;let i=d>0?v.indexOf(q,this.el.selectionEnd):v.lastIndexOf(q,this.el.selectionStart-1);
+if(i<0)i=d>0?v.indexOf(q):v.lastIndexOf(q);
+if(i>-1){this.el.setSelectionRange(i,i+q.length);this.el.focus();this.el.blur();this.el.focus()}
+}
+rep(a){
+const f=document.getElementById('fi').value,r=document.getElementById('ri').value;
+if(a)this.el.value=this.el.value.split(f).join(r);
+else if(this.el.value.substring(this.el.selectionStart,this.el.selectionEnd)===f)this.el.setRangeText(r);
+this.sv();this.up();this.resize();
+}
+makeTab(){
+const rs=this.el.value.trim().split('\n').map(x=>x.split(/\s+/));
+let h='<table class="p-tab">';rs.forEach(r=>h+=`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`);
+document.getElementById('tc').innerHTML=h+'</table>';
+document.getElementById('tp').style.display='flex';
+document.getElementById('s-ti').onclick=()=>html2canvas(document.querySelector('.p-tab'),{backgroundColor:'#000'}).then(c=>this.dl(c.toDataURL(),'table.png'));
+document.getElementById('s-th').onclick=()=>this.df(document.getElementById('tc').innerHTML,'table.html','text/html');
+}
+doEx(t){
+const v=this.el.value;let c=v,m='text/plain';
+if(t=='doc'){c=`<html><body>${v.replace(/\n/g,'<br>')}</body></html>`;m='application/msword'}
+if(t=='html'){c=`<html><body><pre>${v}</pre></body></html>`;m='text/html'}
+this.df(c,`export.${t}`,m);
+}
+mod(t,h){const w=document.getElementById('mw');document.getElementById('mt').innerText=t;document.getElementById('m-body').innerHTML=h;w.style.display='flex'}
+ss(){
+this.to('生成长图...');
+const d=document.querySelector('.main');
+const s=d.scrollTop;
+const h=this.el.scrollHeight;
+const o=d.style.overflow;
+d.style.overflow='visible';
+this.el.style.height=h+'px';
+html2canvas(d,{backgroundColor:'#000',height:h,windowHeight:h,y:0,useCORS:true}).then(c=>{
+this.dl(c.toDataURL(),'screenshot.png');
+d.style.overflow=o;d.scrollTop=s;
+}).catch(()=>{d.style.overflow=o;this.to('生成失败')});
+}
+to(m){const t=document.getElementById('toast');t.innerText=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2000)}
+df(c,n,m){const b=new Blob([c],{type:m}),u=URL.createObjectURL(b);this.dl(u,n)}
+dl(u,n){const a=document.createElement('a');a.href=u;a.download=n;a.click()}
 }
 const e=new Editor();
 </script>
 </body>
 </html>
-
-
