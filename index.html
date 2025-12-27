@@ -178,7 +178,8 @@ class Editor{
         document.getElementById('b-cl').onclick=()=>{if(confirm('清空全部？')){this.el.value='';this.sv();this.up();this.resize()}};
         document.getElementById('b-dg').onclick=()=>this.ss();
         document.getElementById('b-ss').onclick=()=>this.ss();
-        document.getElementById('b-py').onclick=()=>this.mod('赞助','<div style="padding:30px;text-align:center"><img src="微信图片_20251228004905.jpg" style="max-width:100%;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.5)"></div>');
+        document.getElementById('b-py').onclick=()=>this.mod('赞助','<div style="padding:30px;text-align:center"><img src="-
+/微信图片_20251228004905.jpg" style="max-width:100%;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.5)"></div>');
         document.getElementById('b-m').onclick=()=>{
             document.getElementById('pl').classList.toggle('on');
             localStorage.setItem('x_pl_state', document.getElementById('pl').classList.contains('on')? 'on' : 'off');
@@ -381,4 +382,5 @@ const e=new Editor();
 </script>
 </body>
 </html>
+
 
